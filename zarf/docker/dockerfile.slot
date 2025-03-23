@@ -1,0 +1,31 @@
+FROM golang:1.23.1 AS builder
+ENV CGO_ENABLED=0
+ARG BUILD_REF
+
+# copy source code into container
+COPY . /service
+
+# build the service binary
+WORKDIR /service/api/services/slot
+RUN go build -ldflags "-X main.build=$(BUILD_REF)"
+
+# runt the go binary in alpine
+FROM alpine:3.21
+ARG BUILD_DATE
+ARG BUILD_REF
+RUN addgroup -g 1000 -S slot && \
+    adduser -u 1000 -h /service -G slot -S slot
+COPY --from=builder --chown=slot:slot /service/api/services/slot/slot /service/slot
+WORKDIR /service
+USER slot
+CMD ["./slot"]
+
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.title="slot" \
+    org.opencontainers.image.authors="Charles Roth <charlieroth4@gmail.com>" \
+    org.opencontainers.image.source="https://github.com/charlieroth/slot/master/a/services/slot" \
+    org.opencontainers.image.version="${BUILD_REF}" \
+    org.opencontainers.image.revision="${BUILD_REF}" \
+    org.opencontainers.image.vendor="Charles Roth" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.description="Slot is an API for managing availability and scheduling appointments"
