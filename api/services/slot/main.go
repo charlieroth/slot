@@ -9,6 +9,9 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/charlieroth/slot/app/domain/customerapp"
+	"github.com/charlieroth/slot/business/domain/userbus"
+	"github.com/charlieroth/slot/business/domain/userbus/stores/userdb"
 	"github.com/charlieroth/slot/business/sdk/sqldb"
 	"github.com/charlieroth/slot/foundation/config"
 	"github.com/gin-gonic/gin"
@@ -53,6 +56,7 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	// ------------------------------------------------------
 	// Create business packages
 	logger.Info().Msg("initializing business packages")
+	userBus := userbus.NewBusiness(logger, userdb.NewStore(logger, db))
 
 	// ------------------------------------------------------
 	// Start API service
@@ -60,7 +64,7 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	router := buildRoutes()
+	router := buildRoutes(logger, userBus)
 
 	serverErrors := make(chan error, 1)
 	go func() {
@@ -86,11 +90,16 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	}
 }
 
-func buildRoutes() *gin.Engine {
+func buildRoutes(logger *zerolog.Logger, userBus *userbus.Business) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("liveness", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	customerapp.Routes(router, customerapp.Config{
+		Logger:  logger,
+		UserBus: userBus,
 	})
 
 	return router
