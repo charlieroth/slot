@@ -36,6 +36,19 @@ CREATE TABLE schema_migrations (
  id character varying (255) NOT NULL
 );
 
+CREATE TABLE services (
+ buffer_minutes integer  NOT NULL,
+ created_at timestamp without time zone  NOT NULL,
+ description text ,
+ duration_minutes integer  NOT NULL,
+ id uuid  NOT NULL,
+ is_active boolean ,
+ maker_id uuid  NOT NULL,
+ name character varying (255) NOT NULL,
+ price numeric ,
+ updated_at timestamp without time zone  NOT NULL
+);
+
 CREATE TABLE users (
  created_at timestamp without time zone  NOT NULL,
  email character varying (255) NOT NULL,
@@ -59,6 +72,10 @@ ALTER TABLE maker_schedules ADD CONSTRAINT maker_schedules_pkey PRIMARY KEY (id)
 
 ALTER TABLE schema_migrations ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (id);
 
+ALTER TABLE services ADD CONSTRAINT services_maker_id_fkey FOREIGN KEY (maker_id) REFERENCES users(id);
+
+ALTER TABLE services ADD CONSTRAINT services_pkey PRIMARY KEY (id);
+
 ALTER TABLE users ADD CONSTRAINT users_email_key UNIQUE (email);
 
 ALTER TABLE users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
@@ -73,11 +90,15 @@ CREATE INDEX idx_availability_exceptions_maker_id ON public.availability_excepti
 
 CREATE INDEX idx_maker_schedules_maker_id ON public.maker_schedules USING btree (maker_id)
 
+CREATE INDEX idx_services_maker_id ON public.services USING btree (maker_id)
+
 CREATE INDEX idx_users_email ON public.users USING btree (email)
 
 CREATE UNIQUE INDEX maker_schedules_pkey ON public.maker_schedules USING btree (id)
 
 CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (id)
+
+CREATE UNIQUE INDEX services_pkey ON public.services USING btree (id)
 
 CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)
 
