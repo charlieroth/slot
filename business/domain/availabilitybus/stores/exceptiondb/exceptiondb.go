@@ -1,4 +1,4 @@
-package scheduledb
+package exceptiondb
 
 import (
 	"context"
