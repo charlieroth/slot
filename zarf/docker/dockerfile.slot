@@ -7,7 +7,7 @@ COPY . /service
 
 # build the service binary
 WORKDIR /service/api/services/slot
-RUN go build -ldflags "-X main.build=$(BUILD_REF)"
+RUN go build -ldflags "-X main.build=${BUILD_REF}"
 
 # runt the go binary in alpine
 FROM alpine:3.21
