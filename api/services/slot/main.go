@@ -9,9 +9,6 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/charlieroth/slot/app/domain/availabilityapp"
-	"github.com/charlieroth/slot/business/domain/availabilitybus"
-	"github.com/charlieroth/slot/business/domain/availabilitybus/stores/scheduledb"
 	"github.com/charlieroth/slot/business/sdk/sqldb"
 	"github.com/charlieroth/slot/foundation/config"
 	"github.com/gin-gonic/gin"
@@ -56,7 +53,6 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	// ------------------------------------------------------
 	// Create business packages
 	logger.Info().Msg("initializing business packages")
-	availabilityBus := availabilitybus.NewBusiness(scheduledb.NewStore(logger, db), logger)
 
 	// ------------------------------------------------------
 	// Start API service
@@ -64,7 +60,7 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	router := buildRoutes(availabilityBus)
+	router := buildRoutes()
 
 	serverErrors := make(chan error, 1)
 	go func() {
@@ -90,15 +86,12 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	}
 }
 
-func buildRoutes(availabilityBus *availabilitybus.Business) *gin.Engine {
+func buildRoutes() *gin.Engine {
 	router := gin.Default()
 
 	router.GET("liveness", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	availabilityapp.Routes(router, availabilityapp.Config{
-		AvailabilityBus: availabilityBus,
-	})
 	return router
 }
