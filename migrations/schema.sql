@@ -10,6 +10,19 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 -- TABLES 
 
+CREATE TABLE appointments (
+ created_at timestamp without time zone  NOT NULL,
+ customer_id uuid ,
+ end_time timestamp without time zone  NOT NULL,
+ id uuid  NOT NULL,
+ maker_id uuid  NOT NULL,
+ notes text ,
+ service_id uuid  NOT NULL,
+ start_time timestamp without time zone  NOT NULL,
+ status character varying (20) NOT NULL,
+ updated_at timestamp without time zone  NOT NULL
+);
+
 CREATE TABLE availability_exceptions (
  created_at timestamp without time zone  NOT NULL,
  end_time time without time zone ,
@@ -62,6 +75,14 @@ CREATE TABLE users (
 
 -- CONSTRAINTS 
 
+ALTER TABLE appointments ADD CONSTRAINT appointments_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES users(id);
+
+ALTER TABLE appointments ADD CONSTRAINT appointments_maker_id_fkey FOREIGN KEY (maker_id) REFERENCES users(id);
+
+ALTER TABLE appointments ADD CONSTRAINT appointments_pkey PRIMARY KEY (id);
+
+ALTER TABLE appointments ADD CONSTRAINT appointments_service_id_fkey FOREIGN KEY (service_id) REFERENCES services(id);
+
 ALTER TABLE availability_exceptions ADD CONSTRAINT availability_exceptions_maker_id_fkey FOREIGN KEY (maker_id) REFERENCES users(id);
 
 ALTER TABLE availability_exceptions ADD CONSTRAINT availability_exceptions_pkey PRIMARY KEY (id);
@@ -82,7 +103,15 @@ ALTER TABLE users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 -- INDEXES 
 
+CREATE UNIQUE INDEX appointments_pkey ON public.appointments USING btree (id)
+
 CREATE UNIQUE INDEX availability_exceptions_pkey ON public.availability_exceptions USING btree (id)
+
+CREATE INDEX idx_appointments_customer_id ON public.appointments USING btree (customer_id)
+
+CREATE INDEX idx_appointments_maker_id ON public.appointments USING btree (maker_id)
+
+CREATE INDEX idx_appointments_time_range ON public.appointments USING btree (start_time, end_time)
 
 CREATE INDEX idx_availability_exceptions_date ON public.availability_exceptions USING btree (exception_date)
 
